@@ -4,23 +4,29 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 func startWizard() {
-	if _, err := tea.NewProgram(model{}).Run(); err != nil {
+    m := model{
+        userName: textinput.New(),
+    }
+    m.userName.Placeholder = "username"
+    m.userName.Focus()
+
+	if _, err := tea.NewProgram(m).Run(); err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
 }
 
 type model struct {
-	altscreen bool
-	quitting  bool
+    userName textinput.Model
 }
 
 func (m model) Init() tea.Cmd {
-	return nil
+	return tea.EnterAltScreen
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -28,41 +34,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "q", "ctrl+c", "esc":
-			m.quitting = true
 			return m, tea.Quit
-		case " ":
-			var cmd tea.Cmd
-			if m.altscreen {
-				cmd = tea.ExitAltScreen
-			} else {
-				cmd = tea.EnterAltScreen
-			}
-			m.altscreen = !m.altscreen
-			return m, cmd
 		}
 	}
-	return m, nil
+
+    var uMsg tea.Cmd
+    m.userName, uMsg = m.userName.Update(msg)
+
+	return m, uMsg
 }
 
 func (m model) View() string {
-	if m.quitting {
-		return "Bye!\n"
-	}
 
-	const (
-		altscreenMode = " altscreen mode "
-		inlineMode    = " inline mode "
-	)
-
-	var mode string
-	if m.altscreen {
-		mode = altscreenMode
-	} else {
-		mode = inlineMode
-	}
-
-	return fmt.Sprintf("\n\n  You're in %s\n\n\n  space: switch modes • q: exit\n", mode)
-}
-
-func main() {
+	return fmt.Sprintf("\n\n Hello world!\n\n%s", m.userName.View())
 }
