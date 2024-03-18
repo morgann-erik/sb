@@ -34,5 +34,6 @@ func valiateDataDir() error {
 	// create dir
 	os.Mkdir(path, os.ModePerm)
 
+    startWizard()
 	return nil
 }
