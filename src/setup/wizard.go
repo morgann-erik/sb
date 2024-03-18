@@ -8,12 +8,20 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+const (
+	host = iota
+	userName
+)
+
 func startWizard() {
-    m := model{
-        userName: textinput.New(),
-    }
-    m.userName.Placeholder = "username"
-    m.userName.Focus()
+	var inputs []textinput.Model = make([]textinput.Model, 2)
+    inputs[host] = textinput.New()
+    inputs[host].Placeholder = "host"
+    inputs[host].Focus()
+
+    inputs[userName].Placeholder = "username"
+
+	m := model{inputs: inputs}
 
 	if _, err := tea.NewProgram(m).Run(); err != nil {
 		fmt.Println("Error running program:", err)
@@ -22,7 +30,7 @@ func startWizard() {
 }
 
 type model struct {
-    userName textinput.Model
+	inputs []textinput.Model
 }
 
 func (m model) Init() tea.Cmd {
@@ -38,13 +46,20 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-    var uMsg tea.Cmd
-    m.userName, uMsg = m.userName.Update(msg)
+	var cmds []tea.Cmd = make([]tea.Cmd, len(m.inputs))
+	for i := range m.inputs {
+		m.inputs[i], cmds[i] = m.inputs[i].Update(msg)
+	}
 
-	return m, uMsg
+	return m, tea.Batch(cmds...)
 }
 
 func (m model) View() string {
 
-	return fmt.Sprintf("\n\n Hello world!\n\n%s", m.userName.View())
+	return fmt.Sprintf(` 
+    Silverback: setup wizard\n
+    === == = == === == = == ===
+
+    %s
+    %s`, m.inputs[host].View(), m.inputs[userName].View())
 }
