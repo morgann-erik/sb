@@ -15,13 +15,14 @@ const (
 
 func startWizard() {
 	var inputs []textinput.Model = make([]textinput.Model, 2)
-    inputs[host] = textinput.New()
-    inputs[host].Placeholder = "host"
-    inputs[host].Focus()
+	inputs[host] = textinput.New()
+	inputs[host].Placeholder = "host"
+	inputs[host].Focus()
 
-    inputs[userName].Placeholder = "username"
+    inputs[userName] = textinput.New()
+	inputs[userName].Placeholder = "username"
 
-	m := model{inputs: inputs}
+	m := model{inputs: inputs, focusedField: 0}
 
 	if _, err := tea.NewProgram(m).Run(); err != nil {
 		fmt.Println("Error running program:", err)
@@ -30,7 +31,19 @@ func startWizard() {
 }
 
 type model struct {
-	inputs []textinput.Model
+	focusedField int
+	inputs       []textinput.Model
+}
+
+func (m *model) prevInput() {
+	m.focusedField--
+	if m.focusedField < 0 {
+		m.focusedField = len(m.inputs) - 1
+	}
+}
+
+func (m *model) nextInput() {
+	m.focusedField = (m.focusedField + 1) % len(m.inputs)
 }
 
 func (m model) Init() tea.Cmd {
@@ -40,16 +53,24 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "q", "ctrl+c", "esc":
+		switch msg.Type {
+		case tea.KeyCtrlQ:
+        case tea.KeyEsc:
 			return m, tea.Quit
+
+		case tea.KeyShiftTab:
+			m.prevInput()
+		case tea.KeyTab:
+			m.nextInput()
 		}
 	}
 
 	var cmds []tea.Cmd = make([]tea.Cmd, len(m.inputs))
 	for i := range m.inputs {
 		m.inputs[i], cmds[i] = m.inputs[i].Update(msg)
+        m.inputs[i].Blur()
 	}
+	m.inputs[m.focusedField].Focus()
 
 	return m, tea.Batch(cmds...)
 }
