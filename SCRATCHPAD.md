@@ -19,7 +19,7 @@ Based on a Template
 
 # Actions
 
-## `init`
+## `setup`
 
 creates data directory and collects all the basic information
 
