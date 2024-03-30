@@ -7,6 +7,7 @@ require github.com/charmbracelet/bubbletea v0.25.0
 require (
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/charmbracelet/lipgloss v0.9.1 // indirect
+	github.com/pelletier/go-toml/v2 v2.2.0 // indirect
 )
 
 require (

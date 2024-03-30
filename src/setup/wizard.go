@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/morgann-erik/sb/core"
+	"github.com/pelletier/go-toml/v2"
 )
 
 const (
@@ -36,6 +37,15 @@ func startWizard() {
 type model struct {
 	focusedField int
 	inputs       []textinput.Model
+}
+
+func (m *model) toConfig() core.Config {
+	cfg := core.Config{
+		Host:     m.inputs[host].Value(),
+		Username: m.inputs[userName].Value(),
+	}
+
+    return cfg
 }
 
 func (m *model) prevInput() {
@@ -67,7 +77,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyTab:
 			m.nextInput()
 		case tea.KeyEnter:
-            createConfigFile(m)
+			createConfigFile(m)
 			return m, tea.Quit
 		}
 	}
@@ -101,29 +111,33 @@ func createConfigFile(m model) error {
 	}
 
 	//check if .config exists if not create
-    configDir := path.Join(homeDir, core.ConfigDir)
-    _, err = os.Stat(configDir)
-    if os.IsNotExist(err) {
-        os.Mkdir(configDir, os.ModePerm)
-    }
+	configDir := path.Join(homeDir, core.ConfigDir)
+	_, err = os.Stat(configDir)
+	if os.IsNotExist(err) {
+		os.Mkdir(configDir, os.ModePerm)
+	}
 
 	// check if sb exists
-    sbDir := path.Join(configDir, core.SbDir)
-    _, err = os.Stat(sbDir)
-    if os.IsNotExist(err) {
-        os.Mkdir(sbDir, os.ModePerm)
-    }
+	sbDir := path.Join(configDir, core.SbDir)
+	_, err = os.Stat(sbDir)
+	if os.IsNotExist(err) {
+		os.Mkdir(sbDir, os.ModePerm)
+	}
 
 	// create config file
-    cfgPath := path.Join(sbDir, core.ConfigFile)
-    if err = os.WriteFile(cfgPath, []byte(""), 0666); err != nil {
-        log.Fatal(err)
+	cfgPath := path.Join(sbDir, core.ConfigFile)
+    data, err := toml.Marshal(m.toConfig())
+    if err != nil {
         return err
     }
+	if err = os.WriteFile(cfgPath, data, 0666); err != nil {
+		log.Fatal(err)
+		return err
+	}
 
 	// create templates
 
 	// create projects
 
-    return nil
+	return nil
 }
