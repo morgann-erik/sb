@@ -6,12 +6,15 @@ import (
 )
 
 const (
-	DataDir string = "data"
+	DataDir    = "data"
+	ConfigDir  = ".config"
+	SbDir      = "sb"
+	ConfigFile = "sbrc"
 )
 
 func BasePath() (string, error) {
-	p, err := os.Executable() 
-    if err != nil {
+	p, err := os.Executable()
+	if err != nil {
 		return "", err
 	}
 

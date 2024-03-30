@@ -10,9 +10,7 @@ import (
 
 func SetupCommand(ctx *cli.Context) error {
 	log.Println("Setup command")
-	if err := valiateDataDir(); err != nil {
-		return err
-	}
+    startWizard()
 
 	return nil
 }
